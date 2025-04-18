@@ -1,0 +1,40 @@
+name: Unit testing
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: codeberg-tiny
+    steps:
+      - name: Checkout workspace
+        uses: actions/checkout@v4
+      - name: Install uv, python, dependencies
+        env:
+          UV_LINK_MODE: copy
+        run: |
+          pip install uv
+          uv python install
+          uv venv
+          uv sync --all-extras --dev
+      - name: Activate virtual environment
+        run: |
+          source .venv/bin/activate
+          echo "PATH=$PATH" >> $GITHUB_ENV
+      - name: Check version, dependencies
+        run: |
+          python --version
+          uv lock --check
+      - name: Run linter
+        run: ruff check
+      - name: Run tests
+        run: pytest
+        env:
+          BRUNATA_USERNAME: ${{ secrets.BRUNATA_USERNAME }}
+          BRUNATA_PASSWORD: ${{ secrets.BRUNATA_PASSWORD }}
+      - name: Build project
+        run: uv build
+      - name: Publish package if commit is tagged
+        if: startsWith(github.ref, 'refs/tags/')
+        run: uv publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
