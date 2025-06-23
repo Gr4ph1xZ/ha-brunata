@@ -15,7 +15,7 @@ wheels = [
 ]
 
 [[package]]
-name = "brunata-api"
+name = "minol-api"
 version = "0.1.5"
 source = { virtual = "." }
 dependencies = [
